@@ -17,16 +17,13 @@ test('the Chrome build contains the expected MV3 popup and icons', async () => {
   assert.equal(manifest.version, packageJson.version);
   assert.equal(manifest.description, packageJson.description);
   assert.equal(manifest.action?.default_popup, 'popup.html');
-  assert.deepEqual(manifest.permissions, ['storage']);
-  assert.deepEqual(manifest.host_permissions ?? [], []);
-  assert.equal(manifest.content_scripts?.length, 1);
-  const [contentScript] = manifest.content_scripts;
-  assert.deepEqual(contentScript.matches, ['https://github.com/*']);
-  assert.equal(contentScript.run_at, 'document_idle');
-  assert.equal(contentScript.js.length, 1);
-  assert.equal(contentScript.css.length, 1);
+  assert.deepEqual(manifest.permissions, ['storage', 'scripting']);
+  assert.deepEqual(manifest.host_permissions, ['https://github.com/*']);
+  assert.deepEqual(manifest.optional_host_permissions, ['https://*/*']);
+  assert.equal(manifest.content_scripts, undefined);
+  assert.ok(manifest.background?.service_worker);
   await Promise.all(
-    [...contentScript.js, ...contentScript.css].map((path) =>
+    ['content-scripts/github.js', 'content-scripts/github.css', manifest.background.service_worker].map((path) =>
       access(new URL(path, outputDirectory)),
     ),
   );

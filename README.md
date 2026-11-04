@@ -37,6 +37,23 @@ Matching is exact after trimming surrounding whitespace and ignoring case.
 Only applied sidebar labels count; labels mentioned in comments or offered
 in the label picker do not.
 
+## GitHub sites
+
+The **GitHub sites** list defaults to `https://github.com`. Add an HTTPS
+hostname or origin (for example, `github.company.com`) to use the extension
+on a GitHub Enterprise Server instance. These sites must use supported GitHub
+markup; this does not add support for unrelated hosting services.
+Origins match exactly, including ports. Subdomains must be added separately.
+HTTP sites, wildcards, credentials, paths, queries, and fragments are rejected.
+
+Adding a site asks for browser access to that host. Denying access leaves
+settings unchanged. Sites sync between browsers, but permissions do not:
+use **Allow access** next to a synced site on each browser. Reload existing
+tabs after adding or authorizing a site. Label changes and site removal apply
+to already active tabs without reloading. An empty site list turns warnings off.
+Removing a site stops warnings and future script registration; previously
+granted permissions can be revoked in the browser's extension settings.
+
 ## Requirements
 
 - Node.js 22.12 or later and npm
@@ -104,6 +121,8 @@ Browser-specific behavior and store publishing have not yet been implemented.
 
 - `config/trigger-labels.ts`: the default trigger-label list.
 - `utils/label-settings.ts`: validation and browser sync storage.
+- `utils/site-settings.ts`: exact HTTPS origin validation and synced site settings.
+- `entrypoints/background.ts`: register scripts only for configured, authorized hosts.
 - `entrypoints/github.content/`: the GitHub content script and warning styles.
 - `utils/merge-warning.ts`: label detection and merge-area decoration.
 - `entrypoints/popup/`: the highlight-label management popup.
@@ -115,12 +134,15 @@ Browser-specific behavior and store publishing have not yet been implemented.
 The PNG icons are checked in and used by WXT. When changing the artwork, export
 matching 16, 32, 48, and 128-pixel PNGs from `assets/icon.svg`.
 
-The extension requests the `storage` permission to save and sync monitored label
-names, and content-script access only to `https://github.com/*`.
-It starts on GitHub pages so client-side navigation from a PR list to a PR works
+The extension requests `storage` to sync settings, `scripting` to register
+content scripts, and required host access only to `https://github.com/*`.
+The optional `https://*/*` permission lets users authorize individual enterprise
+hosts; it is not granted automatically. Browser host permissions cover all ports
+of a host, but the content script activates only on configured exact origins.
+It starts on configured GitHub pages so client-side navigation from a PR list to a PR works
 without a reload, but decorates only PR conversation pages. It reads the visible
 page DOM, makes no GitHub API requests, and does not require a GitHub token.
-Only your configured label names are stored; PR content is not collected.
+Only your configured settings are stored; PR content is not collected.
 WXT development builds additionally use `tabs`, `scripting`, and access to
 `http://localhost/*` for hot reloading.
 
