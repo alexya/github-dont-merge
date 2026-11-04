@@ -370,11 +370,12 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   controller.setBlockMerging(true);
   await f.flush();
   assert.equal(button.disabled, true);
-  assert.match(button.title, /Remove all monitored do-not-merge labels/);
+  assert.equal(button.title, 'Original GitHub hint', 'only the stop sign shows a tooltip');
   const marker = f.document.querySelector('.gdm-merge-stop');
   assert.equal(marker.tabIndex, 0);
   assert.match(marker.getAttribute('aria-label'), /before merging/);
-  assert.equal(marker.querySelector('[role=tooltip]').textContent, button.title);
+  assert.equal(marker.title, '');
+  assert.match(marker.querySelector('[role=tooltip]').textContent, /Remove all monitored do-not-merge labels/);
   assert.equal(button.nextElementSibling, marker);
   button.click();
   const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true });
@@ -392,6 +393,23 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   assert.equal(f.document.querySelector('.gdm-merge-stop'), null);
   button.click();
   assert.equal(clicks, 1);
+});
+
+test('places one stop sign after GitHub split button groups instead of inside them', async (t) => {
+  const f = fixture(t, {
+    markup: `<div data-testid="mergebox-partial"><section>Checks</section><div id="row">
+      <div class="prc-ButtonGroup-ButtonGroup-vFUrY"><div><button id="merge-button">Bypass rules and merge</button></div>
+      <div><button aria-label="Select merge method"></button></div></div>
+      <span>You can also merge this with the command line.</span></div></div>`,
+  });
+  f.addLabel('do not merge');
+  const controller = f.start();
+  controller.setBlockMerging(true);
+  await f.flush();
+  const group = f.document.querySelector('.prc-ButtonGroup-ButtonGroup-vFUrY');
+  assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
+  assert.equal(group.nextElementSibling.className, 'gdm-merge-stop');
+  assert.equal(f.document.querySelector('#merge-button').disabled, true);
 });
 
 test('blocks confirmations and enabling auto-merge but never cancellation or unrelated buttons', async (t) => {
@@ -412,7 +430,7 @@ test('blocks confirmations and enabling auto-merge but never cancellation or unr
   assert.equal(f.document.querySelectorAll('button:disabled').length, 0);
 });
 
-test('preserves GitHub disabled and title updates while blocked and restores them on label removal', async (t) => {
+test('preserves GitHub disabled updates while blocked and restores them on label removal', async (t) => {
   const f = fixture(t);
   const first = f.addLabel('do not merge');
   const second = f.addLabel('do-not-merge');

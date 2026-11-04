@@ -53,9 +53,16 @@ button[data-gdm-blocked] {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  align-self: center;
   margin-left: 8px;
   vertical-align: middle;
   cursor: help;
+}
+
+/* GitHub's flex rows already space their children. */
+.d-flex > .gdm-merge-stop {
+  margin-left: 0;
 }
 
 .gdm-stop-sign {
@@ -89,7 +96,6 @@ button[data-gdm-blocked] {
 }
 
 .gdm-merge-stop:hover .gdm-stop-tooltip,
-.gdm-merge-stop:focus .gdm-stop-tooltip,
-button[data-gdm-blocked]:hover + .gdm-merge-stop .gdm-stop-tooltip {
+.gdm-merge-stop:focus .gdm-stop-tooltip {
   visibility: visible;
 }

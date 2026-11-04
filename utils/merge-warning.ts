@@ -116,15 +116,12 @@ export function observeMergeWarning(
   let blockMerging = false;
   const blocked = new Map<HTMLButtonElement, {
     disabled: boolean;
-    title: string | null;
     marker: HTMLSpanElement;
   }>();
   const releaseButton = (button: HTMLButtonElement) => {
     const state = blocked.get(button);
     if (!state) return;
     button.disabled = state.disabled;
-    if (state.title === null) button.removeAttribute('title');
-    else button.setAttribute('title', state.title);
     button.removeAttribute('data-gdm-blocked');
     state.marker.remove();
     blocked.delete(button);
@@ -135,7 +132,6 @@ export function observeMergeWarning(
       const state = blocked.get(record.target);
       if (!state) continue;
       if (record.attributeName === 'disabled') state.disabled = record.target.disabled;
-      if (record.attributeName === 'title') state.title = record.target.getAttribute('title');
     }
   };
   const renderBlocking = (target: HTMLElement) => {
@@ -145,6 +141,7 @@ export function observeMergeWarning(
     for (const button of blocked.keys()) {
       if (!buttons.includes(button)) releaseButton(button);
     }
+    const anchors = new Set<Element>();
     for (const button of buttons) {
       let state = blocked.get(button);
       if (!state) {
@@ -153,7 +150,6 @@ export function observeMergeWarning(
         marker.tabIndex = 0;
         marker.setAttribute('role', 'img');
         marker.setAttribute('aria-label', BLOCKED_MESSAGE);
-        marker.title = BLOCKED_MESSAGE;
         const sign = document.createElement('span');
         sign.className = 'gdm-stop-sign';
         sign.textContent = 'STOP';
@@ -163,13 +159,20 @@ export function observeMergeWarning(
         tooltip.setAttribute('role', 'tooltip');
         tooltip.textContent = BLOCKED_MESSAGE;
         marker.append(sign, tooltip);
-        state = { disabled: button.disabled, title: button.getAttribute('title'), marker };
+        state = { disabled: button.disabled, marker };
         blocked.set(button, state);
       }
       button.disabled = true;
       button.dataset.gdmBlocked = '';
-      button.title = BLOCKED_MESSAGE;
-      if (button.nextElementSibling !== state.marker) button.after(state.marker);
+      // Place the sign after GitHub's split button group so it stays on the same row.
+      const group = button.closest('.BtnGroup, [class*="ButtonGroup-ButtonGroup"]');
+      const anchor = group && target.contains(group) ? group : button;
+      if (anchors.has(anchor)) {
+        state.marker.remove();
+        continue;
+      }
+      anchors.add(anchor);
+      if (anchor.nextElementSibling !== state.marker) anchor.after(state.marker);
     }
   };
 
@@ -254,7 +257,7 @@ export function observeMergeWarning(
     attributeFilter: [
       'class', 'style', 'data-name', 'data-testid', 'aria-label', 'hidden',
       'data-color-mode', 'data-light-theme', 'data-dark-theme',
-      'disabled', 'title',
+      'disabled',
     ],
   });
   const update = () => {
