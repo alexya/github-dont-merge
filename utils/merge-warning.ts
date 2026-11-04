@@ -6,6 +6,51 @@ function normalize(name: string): string {
   return name.trim().toLowerCase();
 }
 
+export function visibleLabelCount(
+  widths: readonly number[], available: number, gap: number, overflowWidth: number,
+): number {
+  const total = widths.reduce((sum, width) => sum + width, 0) + Math.max(0, widths.length - 1) * gap;
+  if (total <= available) return widths.length;
+  let used = 0;
+  let count = 0;
+  for (const width of widths) {
+    if (used + width + gap + overflowWidth > available) break;
+    used += width + gap;
+    count++;
+  }
+  return count;
+}
+
+function fitLabels(target: HTMLElement, row: HTMLDivElement, view: Window) {
+  row.querySelector('.gdm-overflow-label')?.remove();
+  const badges = Array.from(row.querySelectorAll('span'));
+  badges.forEach((badge) => { badge.hidden = false; });
+  const available = Math.max(0, target.getBoundingClientRect().width - 16);
+  row.style.width = `${available}px`;
+  if (!available) return;
+
+  const more = row.ownerDocument.createElement('span');
+  more.className = 'gdm-overflow-label';
+  more.textContent = '...';
+  more.tabIndex = 0;
+  row.append(more);
+  const count = visibleLabelCount(
+    badges.map((badge) => badge.getBoundingClientRect().width),
+    available,
+    Number.parseFloat(view.getComputedStyle(row).columnGap) || 0,
+    more.getBoundingClientRect().width,
+  );
+  if (count === badges.length) {
+    more.remove();
+    return;
+  }
+  const hidden = badges.slice(count);
+  hidden.forEach((badge) => { badge.hidden = true; });
+  const names = hidden.map((badge) => badge.textContent).join(', ');
+  more.title = names;
+  more.setAttribute('aria-label', `More labels warning against merging: ${names}`);
+}
+
 function isHidden(element: HTMLElement): boolean {
   const view = element.ownerDocument.defaultView;
   for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
@@ -61,6 +106,7 @@ export function observeMergeWarning(
   let disposed = false;
 
   const clear = () => {
+    resizeObserver?.disconnect();
     decoration?.target.classList.remove(WARNING_CLASS);
     decoration?.labels.remove();
     decoration = undefined;
@@ -99,6 +145,7 @@ export function observeMergeWarning(
       row.setAttribute('role', 'note');
       row.setAttribute('aria-label', 'Labels warning against merging');
       decoration = { target, labels: row, signature: '' };
+      resizeObserver?.observe(target);
     }
 
     if (!target.classList.contains(WARNING_CLASS)) {
@@ -121,8 +168,10 @@ export function observeMergeWarning(
       }));
       decoration.signature = signature;
     }
+    fitLabels(target, decoration.labels, view);
   };
 
+  const resizeObserver = view.ResizeObserver ? new view.ResizeObserver(() => schedule()) : undefined;
   const observer = new view.MutationObserver(() => schedule());
   const observe = () => observer.observe(document.documentElement, {
     childList: true,
@@ -165,6 +214,7 @@ export function observeMergeWarning(
   document.addEventListener('turbo:before-cache', beforeCache);
   document.addEventListener('turbo:load', resume);
   view.addEventListener('popstate', resume);
+  view.addEventListener('resize', schedule);
   theme.addEventListener('change', schedule);
   update();
 
@@ -182,6 +232,7 @@ export function observeMergeWarning(
       document.removeEventListener('turbo:before-cache', beforeCache);
       document.removeEventListener('turbo:load', resume);
       view.removeEventListener('popstate', resume);
+      view.removeEventListener('resize', schedule);
       theme.removeEventListener('change', schedule);
       clear();
     },

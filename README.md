@@ -8,8 +8,11 @@ selected labels warn against merging.
 When an applied sidebar label matches a configured trigger, the merge action
 area gets a red frame with matching label badges at its upper-left edge.
 Each badge uses the sidebar label's background, text, and border colors.
-Multiple matching labels are displayed together. Removing the labels removes
-the warning without reloading the page.
+Matching labels stay on one line. When they would exceed the frame width,
+trailing badges are replaced with a `...` badge; hover it to see the hidden
+names. A single oversized badge is also replaced rather than overflowing.
+The row recalculates when the merge area or window resizes.
+Removing the labels removes the warning without reloading the page.
 
 The warning is visual only: it does not disable buttons, change pull requests,
 or enforce a merge policy. Disabled buttons remain disabled. The warning appears

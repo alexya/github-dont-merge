@@ -4,7 +4,7 @@ import test from 'node:test';
 import { JSDOM } from 'jsdom';
 
 import { DEFAULT_TRIGGER_LABELS } from '../config/trigger-labels.ts';
-import { observeMergeWarning } from '../utils/merge-warning.ts';
+import { observeMergeWarning, visibleLabelCount } from '../utils/merge-warning.ts';
 
 const stylesheet = await readFile(
   new URL('../entrypoints/github.content/style.css', import.meta.url),
@@ -311,4 +311,46 @@ test('renders custom label names as text and cleans up on invalidation', async (
   await f.flush();
   assert.equal(f.badges().length, 0);
   assert.equal(f.document.querySelector('.gdm-merge-warning'), null);
+});
+
+test('reserves an ellipsis badge and gap without truncating individual labels', () => {
+  assert.equal(visibleLabelCount([60, 60, 60], 188, 4, 28), 3);
+  assert.equal(visibleLabelCount([60, 60, 60], 187, 4, 28), 2);
+  assert.equal(visibleLabelCount([60, 60, 60], 155, 4, 28), 1);
+  assert.equal(visibleLabelCount([60, 60], 92, 4, 28), 1);
+  assert.equal(visibleLabelCount([60, 60], 91, 4, 28), 0);
+  assert.equal(visibleLabelCount([400], 100, 4, 28), 0);
+  assert.equal(visibleLabelCount([], 0, 4, 28), 0);
+});
+
+test('hides trailing badges, exposes hidden names and recalculates on resize', async (t) => {
+  const f = fixture(t);
+  for (const label of ['do not merge', 'do-not-merge', 'Hold']) f.addLabel(label);
+  const target = f.document.querySelector('#merge-actions');
+  let width = 196;
+  target.getBoundingClientRect = () => ({ width });
+  const original = f.window.HTMLElement.prototype.getBoundingClientRect;
+  f.window.HTMLElement.prototype.getBoundingClientRect = function () {
+    if (this.parentElement?.classList.contains('gdm-warning-labels')) {
+      return { width: this.classList.contains('gdm-overflow-label') ? 28 : 70 };
+    }
+    return original.call(this);
+  };
+  const controller = f.start(['do not merge', 'do-not-merge', 'Hold']);
+  const visible = () => f.badges().filter((badge) => !badge.hidden).map((badge) => badge.textContent);
+  assert.deepEqual(visible(), ['do not merge', 'do-not-merge', '...']);
+  assert.equal(f.document.querySelector('.gdm-overflow-label').title, 'Hold');
+  assert.equal(f.document.querySelector('.gdm-warning-labels').style.width, '180px');
+  width = 100;
+  f.window.dispatchEvent(new f.window.Event('resize'));
+  await f.flush();
+  assert.deepEqual(visible(), ['...']);
+  assert.match(f.document.querySelector('.gdm-overflow-label').getAttribute('aria-label'), /Hold/);
+  width = 400;
+  f.window.dispatchEvent(new f.window.Event('resize'));
+  await f.flush();
+  assert.deepEqual(visible(), ['do not merge', 'do-not-merge', 'Hold']);
+  assert.equal(f.document.querySelector('.gdm-overflow-label'), null);
+  controller.dispose();
+  assert.equal(f.document.querySelector('.gdm-warning-labels'), null);
 });

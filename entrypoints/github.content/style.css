@@ -9,14 +9,18 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   margin: 12px 8px -10px;
   pointer-events: none;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .gdm-warning-labels > span {
   display: inline-block;
+  flex: 0 0 auto;
+  box-sizing: border-box;
   max-width: 100%;
   padding: 0 7px;
   border: 1px solid;
@@ -25,5 +29,17 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 20px;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.gdm-warning-labels > [hidden] {
+  display: none !important;
+}
+
+.gdm-overflow-label {
+  color: #ffffff;
+  background: #cf222e;
+  border-color: #cf222e;
+  cursor: help;
 }
