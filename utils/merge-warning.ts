@@ -161,7 +161,7 @@ export function observeMergeWarning(
       }
       button.disabled = true;
       button.dataset.gdmBlocked = '';
-      // Show the notice on its own line below the row that holds the merge button group.
+      // Show the notice on its own line above the row that holds the merge button group.
       const group = button.closest('.BtnGroup, [class*="ButtonGroup-ButtonGroup"]');
       let anchor: Element = group && target.contains(group) ? group : button;
       if (anchor.parentElement && anchor.parentElement !== target && target.contains(anchor.parentElement)) {
@@ -172,7 +172,7 @@ export function observeMergeWarning(
         continue;
       }
       anchors.add(anchor);
-      if (anchor.nextElementSibling !== state.marker) anchor.after(state.marker);
+      if (anchor.previousElementSibling !== state.marker) anchor.before(state.marker);
     }
   };
 

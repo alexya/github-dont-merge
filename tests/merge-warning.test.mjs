@@ -376,7 +376,7 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   assert.equal(marker.querySelector('[role=tooltip]'), null, 'no tooltip, the reminder is visible text');
   assert.equal(marker.querySelector('.gdm-stop-text').textContent,
     'Remove all monitored do-not-merge labels from this PR before merging.');
-  assert.ok(button.compareDocumentPosition(marker) & f.window.Node.DOCUMENT_POSITION_FOLLOWING);
+  assert.ok(button.compareDocumentPosition(marker) & f.window.Node.DOCUMENT_POSITION_PRECEDING);
   assert.equal(button.contains(marker), false);
   button.click();
   const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true });
@@ -396,7 +396,7 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   assert.equal(clicks, 1);
 });
 
-test('places one stop notice below the row holding GitHub split button groups', async (t) => {
+test('places one stop notice above the row holding GitHub split button groups', async (t) => {
   const f = fixture(t, {
     markup: `<div data-testid="mergebox-partial"><section>Checks</section><div id="box"><div id="row">
       <div class="prc-ButtonGroup-ButtonGroup-vFUrY"><div><button id="merge-button">Bypass rules and merge</button></div>
@@ -408,7 +408,7 @@ test('places one stop notice below the row holding GitHub split button groups', 
   controller.setBlockMerging(true);
   await f.flush();
   assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
-  assert.equal(f.document.querySelector('#row').nextElementSibling.className, 'gdm-merge-stop');
+  assert.equal(f.document.querySelector('#row').previousElementSibling.className, 'gdm-merge-stop');
   assert.equal(f.document.querySelector('#merge-button').disabled, true);
 });
 

@@ -54,7 +54,7 @@ button[data-gdm-blocked] {
   align-items: center;
   gap: 8px;
   width: 100%;
-  margin-top: 8px;
+  margin-bottom: 8px;
   color: #cf222e;
   font-size: 14px;
   font-weight: 600;
