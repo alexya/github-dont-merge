@@ -63,8 +63,9 @@ markup; this does not add support for unrelated hosting services.
 Origins match exactly, including ports. Subdomains must be added separately.
 HTTP sites, wildcards, credentials, paths, queries, and fragments are rejected.
 
-Adding a site asks for browser access to that host. Denying access leaves
-settings unchanged. Sites sync between browsers, but permissions do not:
+Adding a site saves it and asks for browser access to that host. Click
+**Allow** in the browser prompt. If access is denied, the site stays in the list
+but inactive until you click **Allow access**. Sites sync between browsers, but permissions do not:
 use **Allow access** next to a synced site on each browser. Reload existing
 tabs after adding or authorizing a site. Label changes and site removal apply
 to already active tabs without reloading. An empty site list turns warnings off.

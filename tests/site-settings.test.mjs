@@ -97,13 +97,18 @@ test('popup requests exact site permissions in the user gesture, handles denial,
   allowed = false;
   add('denied.example.com');
   await flush();
-  assert.match(document.querySelector('#site-error').textContent, /not granted/);
-  assert.equal(document.querySelector('#site-name').value, 'denied.example.com');
-  assert.equal(f.items.githubSites.length, 2);
+  assert.match(document.querySelector('#site-error').textContent, /saved, but access was not granted/);
+  assert.equal(document.querySelector('#site-name').value, '');
+  assert.deepEqual(f.items.githubSites.at(-1), 'https://denied.example.com');
+  const deniedItem = [...document.querySelectorAll('#site-list li')].at(-1);
+  assert.equal(deniedItem.querySelector('.secondary').hidden, false, 'denied sites offer Allow access');
+  await f.settings.save(['https://github.com', 'https://github.company.com']);
+  await flush();
   add('http://bad.example.com');
   await flush();
   assert.equal(requests.length, 2, 'invalid sites never request permissions');
   assert.match(document.querySelector('#site-error').textContent, /HTTPS/);
+  assert.deepEqual(f.items.githubSites, ['https://github.com', 'https://github.company.com']);
   allowed = true;
   await f.settings.save(['https://remote.example.com']);
   await flush();
@@ -119,6 +124,26 @@ test('popup requests exact site permissions in the user gesture, handles denial,
   document.querySelector('#restore-sites').click();
   await flush();
   assert.deepEqual(f.items.githubSites, DEFAULT_SITES);
+});
+
+test('adding a site persists it even when the permission prompt closes the popup', async (t) => {
+  const dom = new JSDOM(html);
+  const { document } = dom.window;
+  const f = backing();
+  const access = createSiteAccess({
+    async contains() { return false; },
+    request: () => new Promise(() => {}),
+  });
+  const dispose = mountListSettings(document, f.settings, {
+    prefix: 'site', defaults: DEFAULT_SITES, savedMessage: 'Saved.', ...access,
+  });
+  t.after(() => dom.window.close());
+  await flush();
+  document.querySelector('#site-name').value = 'git.autodesk.com';
+  document.querySelector('#site-form').dispatchEvent(new dom.window.Event('submit', { cancelable: true }));
+  dispose();
+  await flush();
+  assert.deepEqual(f.items.githubSites, ['https://github.com', 'https://git.autodesk.com']);
 });
 
 test('registration only injects on configured and granted hosts and unregisters empty/revoked lists', async () => {

@@ -87,10 +87,14 @@ export function mountListSettings(
     status.textContent = 'Saving...';
     render();
     try {
-      await options.requestAccess?.(next);
-      await settings.save(next);
+      // Start saving before the permission prompt: the prompt can close the popup and drop later work.
+      const saved = settings.save(next);
+      const access = options.requestAccess?.(next);
+      access?.catch(() => undefined);
+      await saved;
+      if (!disposed && adding) input.value = '';
+      await access;
       if (disposed) return;
-      if (adding) input.value = '';
       status.textContent = options.savedMessage;
     } catch (error) {
       if (!disposed) showError(error);
