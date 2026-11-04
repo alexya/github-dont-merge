@@ -223,6 +223,8 @@ test('recognizes merge strategies, confirmations and auto-merge controls', async
     'Merge pull request', 'Squash and merge', 'Rebase and merge',
     'Enable auto-merge', 'Merge when ready', 'Confirm squash and merge',
     'Confirm rebase and merge', 'Confirm merge', 'Disable auto-merge',
+    'Bypass rules and merge', 'Bypass rules and merge (squash)', 'Bypass rules and merge (rebase)',
+    'Confirm bypass rules and merge',
   ]) {
     await t.test(action, (subtest) => {
       const f = fixture(subtest);

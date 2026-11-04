@@ -1,6 +1,6 @@
 const WARNING_CLASS = 'gdm-merge-warning';
 const LABELS_CLASS = 'gdm-warning-labels';
-const MERGE_ACTION = /^(?:merge pull request|squash and merge|rebase and merge|enable auto-merge|merge when ready|confirm merge|confirm squash|confirm rebase|disable auto-merge|cancel auto-merge)\b/i;
+const MERGE_ACTION = /^(?:merge pull request|squash and merge|rebase and merge|enable auto-merge|merge when ready|confirm merge|confirm squash|confirm rebase|(?:confirm )?bypass rules and merge|disable auto-merge|cancel auto-merge)\b/i;
 const CANCEL_AUTO_MERGE = /^(?:disable|cancel) auto-merge\b/i;
 const BLOCKED_MESSAGE = 'Remove all monitored do-not-merge labels from this PR before merging.';
 

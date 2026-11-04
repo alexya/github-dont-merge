@@ -17,10 +17,10 @@ Removing the labels removes the warning without reloading the page.
 By default the warning is visual only and does not disable buttons.
 Disabled buttons remain disabled. The warning appears
 only on the PR conversation page when GitHub renders merge controls, including
-supported merge-confirmation and auto-merge controls.
+supported merge-confirmation, auto-merge, and "Bypass rules and merge" controls.
 
 Enable **Block merging while monitored labels are present** in the popup to
-disable merge, merge-confirmation, and enable-auto-merge buttons while any
+disable merge (including bypass), merge-confirmation, and enable-auto-merge buttons while any
 matching label remains. A stop sign appears beside each blocked action.
 Hover the button or sign, or focus the sign, for a reminder to remove all
 monitored do-not-merge labels. Removing all matching labels, disabling this
