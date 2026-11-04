@@ -46,7 +46,18 @@
       <button id="retry-settings" type="button" class="secondary" hidden>Retry loading</button>
       <p class="help">Labels sync through your browser account when browser sync is enabled. Changes apply to open GitHub tabs.</p>
       <p class="help">Sites sync too, but access must be allowed on each browser. Reload newly added or authorized sites. Removing a site stops warnings; revoke retained access in browser extension settings if needed.</p>
-      <p class="notice">Visual reminder only; merging is not blocked.</p>
+      <fieldset id="merge-controls" disabled>
+        <legend>Merge protection</legend>
+        <label class="checkbox-label" for="block-merging">
+          <input id="block-merging" type="checkbox" aria-describedby="blocking-help" />
+          Block merging while monitored labels are present
+        </label>
+        <p id="blocking-help" class="help">Off by default: merging is not blocked. When enabled, merge actions are disabled until all matching labels are removed. Canceling auto-merge is still allowed.</p>
+      </fieldset>
+      <p id="merge-status" class="help" role="status" aria-live="polite">Loading settings...</p>
+      <p id="merge-error" role="alert" hidden></p>
+      <button id="retry-merge-settings" type="button" class="secondary" hidden>Retry loading</button>
+      <p class="notice">Local browser protection only. This does not enforce repository rules or cancel previously enabled auto-merge.</p>
       <p id="version" class="version"></p>
     </main>
     <script type="module" src="./main.ts"></script>

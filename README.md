@@ -14,10 +14,24 @@ names. A single oversized badge is also replaced rather than overflowing.
 The row recalculates when the merge area or window resizes.
 Removing the labels removes the warning without reloading the page.
 
-The warning is visual only: it does not disable buttons, change pull requests,
-or enforce a merge policy. Disabled buttons remain disabled. The warning appears
+By default the warning is visual only and does not disable buttons.
+Disabled buttons remain disabled. The warning appears
 only on the PR conversation page when GitHub renders merge controls, including
 supported merge-confirmation and auto-merge controls.
+
+Enable **Block merging while monitored labels are present** in the popup to
+disable merge, merge-confirmation, and enable-auto-merge buttons while any
+matching label remains. A stop sign appears beside each blocked action.
+Hover the button or sign, or focus the sign, for a reminder to remove all
+monitored do-not-merge labels. Removing all matching labels, disabling this
+setting, or removing the site restores controls without overriding GitHub's
+own disabled state. Canceling or disabling auto-merge remains available.
+This setting defaults to off, syncs with the other settings, and applies to
+already active tabs.
+
+This is local browser protection, not server-side enforcement: it does not
+cancel previously enabled auto-merge, block API requests, affect other browsers,
+or replace repository rulesets. Use GitHub rulesets for enforced merge policies.
 
 Open the extension from the browser toolbar to manage **Highlight labels**.
 The default labels are `do not merge` and `do-not-merge`. Add custom labels
@@ -101,7 +115,8 @@ npm test
 
 The test command builds the Chrome extension, checks its manifest and assets,
 and runs DOM tests covering matching, colors, dynamic updates, navigation,
-merge-control replacement, cleanup, and synced popup settings.
+merge-control replacement, overflow boundaries, optional blocking and cleanup,
+synced popup settings, origin validation, permissions, and script registration.
 `npm run check` runs both commands.
 
 ## Browser support

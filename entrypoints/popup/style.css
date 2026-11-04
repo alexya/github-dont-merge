@@ -157,7 +157,8 @@ input:focus-visible {
 }
 
 #settings-error,
-#site-error {
+#site-error,
+#merge-error {
   color: #cf222e;
   font-size: 0.8rem;
   overflow-wrap: anywhere;
@@ -166,6 +167,22 @@ input:focus-visible {
 .version {
   margin: 1rem 0 0;
   color: #57606a;
+}
+
+#merge-controls {
+  margin-top: 1.25rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  line-height: 1.5;
+}
+
+.checkbox-label input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -192,7 +209,8 @@ input:focus-visible {
   .remove-label,
   .remove-site,
   #settings-error,
-  #site-error {
+  #site-error,
+  #merge-error {
     color: #ff7b72;
   }
 }

@@ -21,7 +21,6 @@
   display: inline-block;
   flex: 0 0 auto;
   box-sizing: border-box;
-  max-width: 100%;
   padding: 0 7px;
   border: 1px solid;
   border-radius: 2em;
@@ -38,8 +37,59 @@
 }
 
 .gdm-overflow-label {
+  max-width: 100%;
   color: #ffffff;
   background: #cf222e;
   border-color: #cf222e;
   cursor: help;
+}
+
+button[data-gdm-blocked] {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+.gdm-merge-stop {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  vertical-align: middle;
+  cursor: help;
+}
+
+.gdm-stop-sign {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+  color: #ffffff;
+  background: #cf222e;
+  font: 700 8px system-ui, sans-serif;
+}
+
+.gdm-stop-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 100;
+  width: max-content;
+  max-width: min(240px, 60vw);
+  padding: 8px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #24292f;
+  font: 12px/1.5 system-ui, sans-serif;
+  white-space: normal;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.gdm-merge-stop:hover .gdm-stop-tooltip,
+.gdm-merge-stop:focus .gdm-stop-tooltip,
+button[data-gdm-blocked]:hover + .gdm-merge-stop .gdm-stop-tooltip {
+  visibility: visible;
 }

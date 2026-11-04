@@ -4,6 +4,8 @@ import { createLabelSettings } from '../../utils/label-settings';
 import { mountLabelSettings, mountListSettings } from '../../utils/label-settings-popup';
 import { createSiteSettings, DEFAULT_SITES } from '../../utils/site-settings';
 import { createSiteAccess } from '../../utils/site-permissions';
+import { createMergeSettings } from '../../utils/merge-settings';
+import { mountMergeSettings } from '../../utils/merge-settings-popup';
 
 import './style.css';
 
@@ -22,4 +24,5 @@ const disposeSites = mountListSettings(document, createSiteSettings(browser.stor
   savedMessage: 'Saved. Reload newly added or authorized sites to activate warnings.',
   ...createSiteAccess(browser.permissions),
 });
-window.addEventListener('pagehide', () => { dispose(); disposeSites(); }, { once: true });
+const disposeMerge = mountMergeSettings(document, createMergeSettings(browser.storage));
+window.addEventListener('pagehide', () => { dispose(); disposeSites(); disposeMerge(); }, { once: true });

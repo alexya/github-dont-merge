@@ -3,6 +3,7 @@ import { browser } from 'wxt/browser';
 import { createLabelSettings } from '../../utils/label-settings';
 import { observeMergeWarning } from '../../utils/merge-warning';
 import { createSiteSettings } from '../../utils/site-settings';
+import { createMergeSettings } from '../../utils/merge-settings';
 
 import './style.css';
 
@@ -13,11 +14,13 @@ export default defineContentScript({
   main(ctx) {
     let labels: readonly string[] = [];
     let enabled = false;
+    let blockMerging = false;
     let warning: ReturnType<typeof observeMergeWarning> | undefined;
     const update = () => {
       if (enabled) {
         warning ??= observeMergeWarning(document, []);
         warning.setTriggerLabels(labels);
+        warning.setBlockMerging(blockMerging);
       } else {
         warning?.dispose();
         warning = undefined;
@@ -39,10 +42,19 @@ export default defineContentScript({
         console.error("GitHub Don't Merge: could not load configured GitHub sites.", error);
       },
     );
+    const unsubscribeMerge = createMergeSettings(browser.storage).subscribe(
+      (next) => { blockMerging = next; update(); },
+      (error) => {
+        blockMerging = false;
+        update();
+        console.error("GitHub Don't Merge: could not load merge protection.", error);
+      },
+    );
     ctx.addEventListener(window, 'wxt:locationchange', () => warning?.refresh());
     ctx.onInvalidated(() => {
       unsubscribeLabels();
       unsubscribeSites();
+      unsubscribeMerge();
       warning?.dispose();
     });
   },

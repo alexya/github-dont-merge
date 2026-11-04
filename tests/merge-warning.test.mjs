@@ -321,6 +321,7 @@ test('reserves an ellipsis badge and gap without truncating individual labels', 
   assert.equal(visibleLabelCount([60, 60], 91, 4, 28), 0);
   assert.equal(visibleLabelCount([400], 100, 4, 28), 0);
   assert.equal(visibleLabelCount([], 0, 4, 28), 0);
+  assert.doesNotMatch(stylesheet.match(/\.gdm-warning-labels > span \{([^}]*)\}/)?.[1] ?? '', /max-width/);
 });
 
 test('hides trailing badges, exposes hidden names and recalculates on resize', async (t) => {
@@ -353,4 +354,115 @@ test('hides trailing badges, exposes hidden names and recalculates on resize', a
   assert.equal(f.document.querySelector('.gdm-overflow-label'), null);
   controller.dispose();
   assert.equal(f.document.querySelector('.gdm-warning-labels'), null);
+});
+
+test('optional blocking disables merge actions, shows an accessible stop sign and intercepts activation', async (t) => {
+  const f = fixture(t);
+  f.addLabel('do not merge');
+  const button = f.document.querySelector('#merge-button');
+  button.title = 'Original GitHub hint';
+  let clicks = 0, keys = 0;
+  button.addEventListener('click', () => clicks++);
+  button.addEventListener('keydown', () => keys++);
+  const controller = f.start();
+  controller.setBlockMerging(true);
+  await f.flush();
+  assert.equal(button.disabled, true);
+  assert.match(button.title, /Remove all monitored do-not-merge labels/);
+  const marker = f.document.querySelector('.gdm-merge-stop');
+  assert.equal(marker.tabIndex, 0);
+  assert.match(marker.getAttribute('aria-label'), /before merging/);
+  assert.equal(marker.querySelector('[role=tooltip]').textContent, button.title);
+  assert.equal(button.nextElementSibling, marker);
+  button.click();
+  const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true });
+  button.dispatchEvent(click);
+  assert.equal(click.defaultPrevented, true);
+  assert.equal(clicks, 0);
+  for (const key of ['Enter', ' ']) {
+    button.dispatchEvent(new f.window.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+  }
+  assert.equal(keys, 0);
+  controller.setBlockMerging(false);
+  await f.flush();
+  assert.equal(button.disabled, false);
+  assert.equal(button.title, 'Original GitHub hint');
+  assert.equal(f.document.querySelector('.gdm-merge-stop'), null);
+  button.click();
+  assert.equal(clicks, 1);
+});
+
+test('blocks confirmations and enabling auto-merge but never cancellation or unrelated buttons', async (t) => {
+  const f = fixture(t, {
+    markup: `<div class="merge-message">${[
+      'Merge pull request', 'Confirm squash and merge', 'Confirm rebase and merge',
+      'Enable auto-merge', 'Merge when ready', 'Disable auto-merge', 'Cancel auto-merge', 'Update branch',
+    ].map((text) => `<button>${text}</button>`).join('')}</div>`,
+  });
+  f.addLabel('do not merge');
+  const controller = f.start();
+  controller.setBlockMerging(true);
+  await f.flush();
+  assert.deepEqual(Array.from(f.document.querySelectorAll('button'), (button) => button.disabled),
+    [true, true, true, true, true, false, false, false]);
+  controller.setTriggerLabels([]);
+  await f.flush();
+  assert.equal(f.document.querySelectorAll('button:disabled').length, 0);
+});
+
+test('preserves GitHub disabled and title updates while blocked and restores them on label removal', async (t) => {
+  const f = fixture(t);
+  const first = f.addLabel('do not merge');
+  const second = f.addLabel('do-not-merge');
+  const button = f.document.querySelector('#merge-button');
+  const controller = f.start();
+  controller.setBlockMerging(true);
+  await f.flush();
+  button.disabled = true;
+  button.title = 'Checks are now failing';
+  await f.flush();
+  first.remove();
+  await f.flush();
+  assert.equal(button.disabled, true);
+  assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
+  second.remove();
+  await f.flush();
+  assert.equal(button.disabled, true, 'do not override GitHub disabling an already blocked button');
+  assert.equal(button.title, 'Checks are now failing');
+  f.addLabel('do not merge');
+  await f.flush();
+  button.disabled = false;
+  await f.flush();
+  assert.equal(button.disabled, true, 'reapply blocking after GitHub enables the button');
+  controller.dispose();
+  assert.equal(button.disabled, false, 'restore the latest GitHub state');
+  assert.equal(button.hasAttribute('data-gdm-blocked'), false);
+});
+
+test('cleans blocked buttons on replacement, cached navigation and disposal', async (t) => {
+  const f = fixture(t);
+  f.addLabel('do not merge');
+  const controller = f.start();
+  controller.setBlockMerging(true);
+  await f.flush();
+  const old = f.document.querySelector('#merge-button');
+  old.outerHTML = '<button id="replacement" disabled>Confirm merge</button>';
+  await f.flush();
+  assert.equal(old.disabled, false);
+  assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
+  const replacement = f.document.querySelector('#replacement');
+  f.document.dispatchEvent(new f.window.Event('turbo:before-cache'));
+  assert.equal(replacement.disabled, true);
+  assert.equal(f.document.querySelector('.gdm-merge-stop'), null);
+  f.document.dispatchEvent(new f.window.Event('turbo:load'));
+  await f.flush();
+  assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
+  f.window.history.pushState({}, '', '/owner/repo/pull/1/files');
+  controller.refresh();
+  await f.flush();
+  assert.equal(f.document.querySelector('.gdm-merge-stop'), null);
+  assert.equal(replacement.disabled, true);
+  controller.dispose();
+  controller.setBlockMerging(true);
+  assert.equal(f.document.querySelector('.gdm-merge-stop'), null);
 });
