@@ -7,6 +7,7 @@
   </head>
   <body>
     <main>
+      <p id="popup-status" class="status-badge" role="status" aria-live="polite" data-state="loading">Loading...</p>
       <p class="eyebrow">Merge warnings</p>
       <h1>GitHub Don't Merge</h1>
       <p class="description">Highlight merge controls when a PR has any of these labels.</p>
@@ -24,7 +25,6 @@
           <button id="restore-sites" type="button" class="secondary">Restore github.com</button>
         </fieldset>
       </form>
-      <p id="site-status" class="help" role="status" aria-live="polite">Loading settings...</p>
       <p id="site-error" role="alert" hidden></p>
       <button id="retry-sites" type="button" class="secondary" hidden>Retry loading</button>
       <form id="label-form">
@@ -41,7 +41,6 @@
           <button id="restore-defaults" type="button" class="secondary">Restore defaults</button>
         </fieldset>
       </form>
-      <p id="settings-status" class="help" role="status" aria-live="polite">Loading settings...</p>
       <p id="settings-error" role="alert" hidden></p>
       <button id="retry-settings" type="button" class="secondary" hidden>Retry loading</button>
       <p class="help">Labels sync through your browser account when browser sync is enabled. Changes apply to open GitHub tabs.</p>
@@ -54,7 +53,6 @@
         </label>
         <p id="blocking-help" class="help">Off by default: merging is not blocked. When enabled, merge actions are disabled until all matching labels are removed. Canceling auto-merge is still allowed.</p>
       </fieldset>
-      <p id="merge-status" class="help" role="status" aria-live="polite">Loading settings...</p>
       <p id="merge-error" role="alert" hidden></p>
       <button id="retry-merge-settings" type="button" class="secondary" hidden>Retry loading</button>
       <p class="notice">Local browser protection only. This does not enforce repository rules or cancel previously enabled auto-merge.</p>

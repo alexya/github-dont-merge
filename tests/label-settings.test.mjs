@@ -196,7 +196,7 @@ test('popup rejects blank and duplicate names and preserves input on failed save
   await f.add('Custom');
   assert.equal(f.input.value, 'Custom');
   assert.match(f.error().textContent, /quota/);
-  assert.equal(f.document.querySelector('#settings-status').textContent, '');
+  assert.equal(f.document.querySelector('#popup-status').dataset.state, 'error');
   assert.deepEqual(f.names(), DEFAULT_TRIGGER_LABELS);
   assert.equal(f.controls.disabled, false);
   f.state.setError = undefined;
@@ -227,7 +227,7 @@ test('popup reports missing storage permission instead of loading indefinitely',
   backing.settings = createLabelSettings(undefined);
   const f = popup(t, backing);
   assert.equal(f.controls.disabled, true);
-  assert.equal(f.document.querySelector('#settings-status').textContent, '');
+  assert.equal(f.document.querySelector('#popup-status').dataset.state, 'error');
   assert.equal(f.error().hidden, false);
   assert.match(f.error().textContent, /Reload the extension.*storage permission/);
   assert.equal(f.document.querySelector('#retry-settings').hidden, false);
@@ -242,7 +242,7 @@ test('popup reports synchronous listener setup failures and can retry', async (t
   backing.storage.onChanged.addListener = () => { throw new Error('Listener setup failed'); };
   const f = popup(t, backing);
   assert.equal(f.controls.disabled, true);
-  assert.equal(f.document.querySelector('#settings-status').textContent, '');
+  assert.equal(f.document.querySelector('#popup-status').dataset.state, 'error');
   assert.match(f.error().textContent, /Listener setup failed/);
   assert.equal(f.listeners.size, 0);
   backing.storage.onChanged.addListener = addListener;
@@ -258,7 +258,7 @@ test('popup reports synchronous storage read failures and recovers on a change',
   backing.storage.sync.get = () => { throw new Error('Sync read failed'); };
   const f = popup(t, backing);
   assert.equal(f.controls.disabled, true);
-  assert.equal(f.document.querySelector('#settings-status').textContent, '');
+  assert.equal(f.document.querySelector('#popup-status').dataset.state, 'error');
   assert.match(f.error().textContent, /Sync read failed/);
   assert.equal(f.listeners.size, 1);
   f.emit(['recovered']);

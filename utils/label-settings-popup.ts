@@ -1,5 +1,6 @@
 import { DEFAULT_TRIGGER_LABELS } from '../config/trigger-labels.ts';
 import type { createLabelSettings } from './label-settings.ts';
+import { statusReporter } from './popup-status.ts';
 
 export function mountLabelSettings(
   document: Document,
@@ -8,7 +9,6 @@ export function mountLabelSettings(
   return mountListSettings(document, settings, {
     prefix: 'label',
     defaults: DEFAULT_TRIGGER_LABELS,
-    savedMessage: 'Saved. Changes apply to open GitHub tabs.',
   });
 }
 
@@ -18,7 +18,6 @@ export function mountListSettings(
   options: {
     prefix: 'label' | 'site';
     defaults: readonly string[];
-    savedMessage: string;
     requestAccess?: (values: readonly string[]) => Promise<void>;
     hasAccess?: (value: string) => Promise<boolean>;
   },
@@ -35,13 +34,13 @@ export function mountListSettings(
   const list = element<HTMLUListElement>(`#${prefix}-list`);
   const empty = element(`#empty-${prefix}s`);
   const reset = element<HTMLButtonElement>(prefix === 'label' ? '#restore-defaults' : '#restore-sites');
-  const status = element(prefix === 'label' ? '#settings-status' : '#site-status');
   const errorMessage = element(prefix === 'label' ? '#settings-error' : '#site-error');
   const retry = element<HTMLButtonElement>(prefix === 'label' ? '#retry-settings' : '#retry-sites');
   let labels: readonly string[] | undefined;
   let saving = false;
   let disposed = false;
   let unsubscribe: (() => void) | undefined;
+  const report = statusReporter(document, 'loading');
 
   const render = () => {
     controls.disabled = saving || labels === undefined;
@@ -76,7 +75,7 @@ export function mountListSettings(
     }));
   };
   const showError = (error: unknown) => {
-    status.textContent = '';
+    report.set('error');
     errorMessage.textContent = error instanceof Error ? error.message : String(error);
     errorMessage.hidden = false;
   };
@@ -84,7 +83,7 @@ export function mountListSettings(
     if (disposed || saving || labels === undefined) return;
     saving = true;
     errorMessage.hidden = true;
-    status.textContent = 'Saving...';
+    report.set('saving');
     render();
     try {
       // Start saving before the permission prompt: the prompt can close the popup and drop later work.
@@ -95,7 +94,7 @@ export function mountListSettings(
       if (!disposed && adding) input.value = '';
       await access;
       if (disposed) return;
-      status.textContent = options.savedMessage;
+      report.set('saved');
     } catch (error) {
       if (!disposed) showError(error);
     } finally {
@@ -111,14 +110,14 @@ export function mountListSettings(
     labels = undefined;
     retry.hidden = true;
     errorMessage.hidden = true;
-    status.textContent = 'Loading settings...';
+    report.set('loading');
     render();
     unsubscribe = settings.subscribe(
       (next) => {
         labels = next;
         errorMessage.hidden = true;
         retry.hidden = true;
-        if (!saving) status.textContent = 'Settings loaded.';
+        report.settle();
         render();
       },
       (error) => {
@@ -142,6 +141,7 @@ export function mountListSettings(
   return () => {
     disposed = true;
     unsubscribe?.();
+    report.set('idle');
     form.removeEventListener('submit', submit);
     reset.removeEventListener('click', restore);
     retry.removeEventListener('click', load);

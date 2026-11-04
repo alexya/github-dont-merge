@@ -1,24 +1,25 @@
 import type { createMergeSettings } from './merge-settings.ts';
+import { statusReporter } from './popup-status.ts';
 
 export function mountMergeSettings(document: Document, settings: ReturnType<typeof createMergeSettings>) {
   const controls = document.querySelector<HTMLFieldSetElement>('#merge-controls');
   const checkbox = document.querySelector<HTMLInputElement>('#block-merging');
-  const status = document.querySelector<HTMLElement>('#merge-status');
   const errorMessage = document.querySelector<HTMLElement>('#merge-error');
   const retry = document.querySelector<HTMLButtonElement>('#retry-merge-settings');
-  if (!controls || !checkbox || !status || !errorMessage || !retry) {
+  if (!controls || !checkbox || !errorMessage || !retry) {
     throw new Error('Missing merge-blocking popup controls.');
   }
   let value: boolean | undefined;
   let saving = false;
   let disposed = false;
   let unsubscribe: (() => void) | undefined;
+  const report = statusReporter(document, 'loading');
   const render = () => {
     controls.disabled = saving || value === undefined;
     checkbox.checked = value ?? false;
   };
   const showError = (error: unknown) => {
-    status.textContent = '';
+    report.set('error');
     errorMessage.textContent = error instanceof Error ? error.message : String(error);
     errorMessage.hidden = false;
   };
@@ -27,14 +28,14 @@ export function mountMergeSettings(document: Document, settings: ReturnType<type
     value = undefined;
     retry.hidden = true;
     errorMessage.hidden = true;
-    status.textContent = 'Loading settings...';
+    report.set('loading');
     render();
     unsubscribe = settings.subscribe(
       (next) => {
         value = next;
         errorMessage.hidden = true;
         retry.hidden = true;
-        if (!saving) status.textContent = 'Settings loaded.';
+        report.settle();
         render();
       },
       (error) => {
@@ -50,11 +51,11 @@ export function mountMergeSettings(document: Document, settings: ReturnType<type
     const next = checkbox.checked;
     saving = true;
     errorMessage.hidden = true;
-    status.textContent = 'Saving...';
+    report.set('saving');
     render();
     try {
       await settings.save(next);
-      if (!disposed) status.textContent = 'Saved. Changes apply to open GitHub tabs.';
+      if (!disposed) report.set('saved');
     } catch (error) {
       if (!disposed) showError(error);
     } finally {
@@ -69,6 +70,7 @@ export function mountMergeSettings(document: Document, settings: ReturnType<type
   return () => {
     disposed = true;
     unsubscribe?.();
+    report.set('idle');
     checkbox.removeEventListener('change', onChange);
     retry.removeEventListener('click', load);
   };

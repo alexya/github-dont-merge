@@ -16,6 +16,84 @@ main {
   padding: 1.25rem;
 }
 
+.status-badge {
+  /* Stay in the top-right corner even when the popup is scrolled. */
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 1px 3px rgb(31 35 40 / 15%);
+  animation: status-in 150ms ease-out;
+}
+
+.status-badge[hidden] {
+  display: none;
+}
+
+.status-badge::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge[data-state="loading"],
+.status-badge[data-state="saving"] {
+  color: #0969da;
+  background: #ddf4ff;
+  border-color: #54aeff;
+}
+
+.status-badge[data-state="loading"]::before,
+.status-badge[data-state="saving"]::before {
+  animation: status-pulse 1s ease-in-out infinite;
+}
+
+.status-badge[data-state="saved"] {
+  color: #1a7f37;
+  background: #dafbe1;
+  border-color: #4ac26b;
+}
+
+.status-badge[data-state="saved"]::before {
+  content: "\2713";
+  width: auto;
+  height: auto;
+  background: none;
+}
+
+.status-badge[data-state="error"] {
+  color: #cf222e;
+  background: #ffebe9;
+  border-color: #ff8182;
+}
+
+@keyframes status-in {
+  from { opacity: 0; transform: translateY(-0.25rem); }
+}
+
+@keyframes status-pulse {
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-badge,
+  .status-badge::before {
+    animation: none !important;
+  }
+}
+
 .eyebrow {
   margin: 0 0 0.4rem;
   color: #57606a;
@@ -204,6 +282,25 @@ input:focus-visible {
   #label-list li,
   #site-list li {
     border-color: #30363d;
+  }
+
+  .status-badge[data-state="loading"],
+  .status-badge[data-state="saving"] {
+    color: #79c0ff;
+    background: #0c2d6b;
+    border-color: #1f6feb;
+  }
+
+  .status-badge[data-state="saved"] {
+    color: #56d364;
+    background: #0f3d1f;
+    border-color: #238636;
+  }
+
+  .status-badge[data-state="error"] {
+    color: #ff7b72;
+    background: #490202;
+    border-color: #da3633;
   }
 
   .remove-label,
