@@ -7,13 +7,28 @@
   </head>
   <body>
     <main>
-      <p class="eyebrow">Extension starter</p>
+      <p class="eyebrow">Merge warnings</p>
       <h1>GitHub Don't Merge</h1>
-      <p class="description">A browser extension for GitHub pull requests.</p>
-      <section class="status" aria-labelledby="status-title">
-        <h2 id="status-title">Work in progress</h2>
-        <p>The do-not-merge feature has not been implemented yet.</p>
-      </section>
+      <p class="description">Highlight merge controls when a PR has any of these labels.</p>
+      <form id="label-form">
+        <fieldset id="label-controls" disabled>
+          <legend>Highlight labels</legend>
+          <label for="label-name">Label name</label>
+          <div class="add-label">
+            <input id="label-name" type="text" autocomplete="off" placeholder="e.g. Not Ready To Merge" aria-describedby="matching-help" />
+            <button type="submit">Add</button>
+          </div>
+          <p id="matching-help" class="help">Exact match, ignoring case.</p>
+          <ul id="label-list" aria-label="Monitored labels"></ul>
+          <p id="empty-labels" class="help" hidden>No labels monitored. Highlighting is off.</p>
+          <button id="restore-defaults" type="button" class="secondary">Restore defaults</button>
+        </fieldset>
+      </form>
+      <p id="settings-status" class="help" role="status" aria-live="polite">Loading settings...</p>
+      <p id="settings-error" role="alert" hidden></p>
+      <button id="retry-settings" type="button" class="secondary" hidden>Retry loading</button>
+      <p class="help">Labels sync through your browser account when browser sync is enabled. Changes apply to open GitHub tabs.</p>
+      <p class="notice">Visual reminder only; merging is not blocked.</p>
       <p id="version" class="version"></p>
     </main>
     <script type="module" src="./main.ts"></script>

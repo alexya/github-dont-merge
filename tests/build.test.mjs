@@ -17,15 +17,25 @@ test('the Chrome build contains the expected MV3 popup and icons', async () => {
   assert.equal(manifest.version, packageJson.version);
   assert.equal(manifest.description, packageJson.description);
   assert.equal(manifest.action?.default_popup, 'popup.html');
-  assert.deepEqual(manifest.permissions ?? [], []);
+  assert.deepEqual(manifest.permissions, ['storage']);
   assert.deepEqual(manifest.host_permissions ?? [], []);
-  assert.deepEqual(manifest.content_scripts ?? [], []);
+  assert.equal(manifest.content_scripts?.length, 1);
+  const [contentScript] = manifest.content_scripts;
+  assert.deepEqual(contentScript.matches, ['https://github.com/*']);
+  assert.equal(contentScript.run_at, 'document_idle');
+  assert.equal(contentScript.js.length, 1);
+  assert.equal(contentScript.css.length, 1);
+  await Promise.all(
+    [...contentScript.js, ...contentScript.css].map((path) =>
+      access(new URL(path, outputDirectory)),
+    ),
+  );
 
   const popup = await readFile(
     new URL(manifest.action.default_popup, outputDirectory),
     'utf8',
   );
-  assert.match(popup, /The do-not-merge feature has not been implemented yet\./);
+  assert.match(popup, /merging is not blocked/);
 
   const script = popup.match(/<script\b[^>]*\bsrc="([^"]+)"/);
   const stylesheet = popup.match(/<link\b[^>]*\bhref="([^"]+\.css)"/);

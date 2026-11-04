@@ -1,10 +1,41 @@
 # GitHub Don't Merge
 
-A browser extension project intended to add a do-not-merge action to GitHub
-pull requests.
+A browser extension that highlights GitHub pull request merge controls when
+selected labels warn against merging.
 
-This is an initial scaffold. The extension currently displays a status popup;
-it does not add a button, change pull requests, or prevent merges.
+## Label warnings
+
+When an applied sidebar label matches a configured trigger, the merge action
+area gets a red frame with matching label badges at its upper-left edge.
+Each badge uses the sidebar label's background, text, and border colors.
+Multiple matching labels are displayed together. Removing the labels removes
+the warning without reloading the page.
+
+The warning is visual only: it does not disable buttons, change pull requests,
+or enforce a merge policy. Disabled buttons remain disabled. The warning appears
+only on the PR conversation page when GitHub renders merge controls, including
+supported merge-confirmation and auto-merge controls.
+
+Open the extension from the browser toolbar to manage **Highlight labels**.
+The default labels are `do not merge` and `do-not-merge`. Add custom labels
+(for example, `Not Ready To Merge`), remove individual labels, or choose
+**Restore defaults**. An empty list turns off highlighting.
+
+Changes are saved automatically in browser sync storage and apply to open
+GitHub tabs without reloading. They persist across browser restarts and sync
+between browsers using the same extension identity and browser account when
+extension/settings sync is enabled. Chrome, Edge, and Firefox use separate
+sync services; settings do not sync across browser vendors. Unpacked builds
+with different extension IDs also have separate settings.
+
+The popup reports loading and saving errors; failed saves do not discard your
+input. If sync storage is unavailable after updating an unpacked build, reload
+the extension in your browser's extensions page to apply its permissions.
+Browser sync storage quotas apply to large lists.
+
+Matching is exact after trimming surrounding whitespace and ignoring case.
+Only applied sidebar labels count; labels mentioned in comments or offered
+in the label picker do not.
 
 ## Requirements
 
@@ -37,7 +68,7 @@ is restarted, reload the extension in Chrome to reconnect it.
 1. Run `npm run build`.
 2. Open `chrome://extensions` and enable **Developer mode**.
 3. Select **Load unpacked** and choose `.output/chrome-mv3`.
-4. Open the extension from the browser toolbar to see the starter popup.
+4. Open a GitHub PR with a matching label to see the merge warning.
 
 Run `npm run zip` to create a Chrome extension archive under `.output/`.
 
@@ -48,8 +79,10 @@ npm run typecheck
 npm test
 ```
 
-The test command builds the Chrome extension and checks its generated manifest,
-popup, and icons. `npm run check` runs both commands.
+The test command builds the Chrome extension, checks its manifest and assets,
+and runs DOM tests covering matching, colors, dynamic updates, navigation,
+merge-control replacement, cleanup, and synced popup settings.
+`npm run check` runs both commands.
 
 ## Browser support
 
@@ -69,7 +102,11 @@ Browser-specific behavior and store publishing have not yet been implemented.
 
 ## Project structure
 
-- `entrypoints/popup/`: the extension popup.
+- `config/trigger-labels.ts`: the default trigger-label list.
+- `utils/label-settings.ts`: validation and browser sync storage.
+- `entrypoints/github.content/`: the GitHub content script and warning styles.
+- `utils/merge-warning.ts`: label detection and merge-area decoration.
+- `entrypoints/popup/`: the highlight-label management popup.
 - `assets/icon.svg`: the source artwork for the extension icons.
 - `public/icon/`: the PNG icons included in extension builds.
 - `wxt.config.ts`: shared extension configuration and manifest metadata.
@@ -78,7 +115,15 @@ Browser-specific behavior and store publishing have not yet been implemented.
 The PNG icons are checked in and used by WXT. When changing the artwork, export
 matching 16, 32, 48, and 128-pixel PNGs from `assets/icon.svg`.
 
-Production builds do not request GitHub access or other extension permissions.
-WXT development builds add `tabs`, `scripting`, and access to
-`http://localhost/*` for hot reloading. Add a narrowly scoped content script
-and any required permissions when the pull request integration is implemented.
+The extension requests the `storage` permission to save and sync monitored label
+names, and content-script access only to `https://github.com/*`.
+It starts on GitHub pages so client-side navigation from a PR list to a PR works
+without a reload, but decorates only PR conversation pages. It reads the visible
+page DOM, makes no GitHub API requests, and does not require a GitHub token.
+Only your configured label names are stored; PR content is not collected.
+WXT development builds additionally use `tabs`, `scripting`, and access to
+`http://localhost/*` for hot reloading.
+
+GitHub's DOM is not a public API. The extension supports the classic
+`.merge-message` area and the current `[data-testid="mergebox-partial"]` layout;
+future GitHub layout changes may require updating the selectors.
