@@ -8,13 +8,30 @@ selected labels warn against merging.
 When an applied sidebar label matches a configured trigger, the merge action
 area gets a red frame with matching label badges at its upper-left edge.
 Each badge uses the sidebar label's background, text, and border colors.
-Multiple matching labels are displayed together. Removing the labels removes
-the warning without reloading the page.
+Matching labels stay on one line. When they would exceed the frame width,
+trailing badges are replaced with a `...` badge; hover it to see the hidden
+names. A single oversized badge is also replaced rather than overflowing.
+The row recalculates when the merge area or window resizes.
+Removing the labels removes the warning without reloading the page.
 
-The warning is visual only: it does not disable buttons, change pull requests,
-or enforce a merge policy. Disabled buttons remain disabled. The warning appears
+By default the warning is visual only and does not disable buttons.
+Disabled buttons remain disabled. The warning appears
 only on the PR conversation page when GitHub renders merge controls, including
-supported merge-confirmation and auto-merge controls.
+supported merge-confirmation, auto-merge, and "Bypass rules and merge" controls.
+
+Enable **Block merging while monitored labels are present** in the popup to
+disable merge (including bypass), merge-confirmation, and enable-auto-merge buttons while any
+matching label remains. A stop sign and the red reminder "Remove all monitored
+do-not-merge labels from this PR before merging." appear above the merge
+button. Removing all matching labels, disabling this
+setting, or removing the site restores controls without overriding GitHub's
+own disabled state. Canceling or disabling auto-merge remains available.
+This setting defaults to off, syncs with the other settings, and applies to
+already active tabs.
+
+This is local browser protection, not server-side enforcement: it does not
+cancel previously enabled auto-merge, block API requests, affect other browsers,
+or replace repository rulesets. Use GitHub rulesets for enforced merge policies.
 
 Open the extension from the browser toolbar to manage **Highlight labels**.
 The default labels are `do not merge` and `do-not-merge`. Add custom labels
@@ -36,6 +53,25 @@ Browser sync storage quotas apply to large lists.
 Matching is exact after trimming surrounding whitespace and ignoring case.
 Only applied sidebar labels count; labels mentioned in comments or offered
 in the label picker do not.
+
+## GitHub sites
+
+The **GitHub sites** list defaults to `https://github.com`. Add an HTTPS
+hostname or origin (for example, `github.company.com`) to use the extension
+on a GitHub Enterprise Server instance. These sites must use supported GitHub
+markup; this does not add support for unrelated hosting services.
+Origins match exactly, including ports. Subdomains must be added separately.
+HTTP sites, wildcards, credentials, paths, queries, and fragments are rejected.
+
+Adding a site saves it and asks for browser access to that host. Click
+**Allow** in the browser prompt. If access is denied, the site stays in the list
+but inactive until you click **Allow access**. Sites sync between browsers, but permissions do not:
+use **Allow access** next to a synced site on each browser. Every setting
+change, including adding or authorizing a site, applies to already open tabs
+without reloading them. Installing or reloading the extension also refreshes
+open tabs on configured sites. An empty site list turns warnings off.
+Removing a site stops warnings and future script registration; previously
+granted permissions can be revoked in the browser's extension settings.
 
 ## Requirements
 
@@ -81,7 +117,8 @@ npm test
 
 The test command builds the Chrome extension, checks its manifest and assets,
 and runs DOM tests covering matching, colors, dynamic updates, navigation,
-merge-control replacement, cleanup, and synced popup settings.
+merge-control replacement, overflow boundaries, optional blocking and cleanup,
+synced popup settings, origin validation, permissions, and script registration.
 `npm run check` runs both commands.
 
 ## Browser support
@@ -104,6 +141,8 @@ Browser-specific behavior and store publishing have not yet been implemented.
 
 - `config/trigger-labels.ts`: the default trigger-label list.
 - `utils/label-settings.ts`: validation and browser sync storage.
+- `utils/site-settings.ts`: exact HTTPS origin validation and synced site settings.
+- `entrypoints/background.ts`: register scripts only for configured, authorized hosts.
 - `entrypoints/github.content/`: the GitHub content script and warning styles.
 - `utils/merge-warning.ts`: label detection and merge-area decoration.
 - `entrypoints/popup/`: the highlight-label management popup.
@@ -115,12 +154,15 @@ Browser-specific behavior and store publishing have not yet been implemented.
 The PNG icons are checked in and used by WXT. When changing the artwork, export
 matching 16, 32, 48, and 128-pixel PNGs from `assets/icon.svg`.
 
-The extension requests the `storage` permission to save and sync monitored label
-names, and content-script access only to `https://github.com/*`.
-It starts on GitHub pages so client-side navigation from a PR list to a PR works
+The extension requests `storage` to sync settings, `scripting` to register
+content scripts, and required host access only to `https://github.com/*`.
+The optional `https://*/*` permission lets users authorize individual enterprise
+hosts; it is not granted automatically. Browser host permissions cover all ports
+of a host, but the content script activates only on configured exact origins.
+It starts on configured GitHub pages so client-side navigation from a PR list to a PR works
 without a reload, but decorates only PR conversation pages. It reads the visible
 page DOM, makes no GitHub API requests, and does not require a GitHub token.
-Only your configured label names are stored; PR content is not collected.
+Only your configured settings are stored; PR content is not collected.
 WXT development builds additionally use `tabs`, `scripting`, and access to
 `http://localhost/*` for hot reloading.
 

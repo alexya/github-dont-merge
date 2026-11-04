@@ -10,6 +10,23 @@
       <p class="eyebrow">Merge warnings</p>
       <h1>GitHub Don't Merge</h1>
       <p class="description">Highlight merge controls when a PR has any of these labels.</p>
+      <form id="site-form">
+        <fieldset id="site-controls" disabled>
+          <legend>GitHub sites</legend>
+          <label for="site-name">Hostname or HTTPS origin</label>
+          <div class="add-label">
+            <input id="site-name" type="text" autocomplete="off" placeholder="e.g. github.company.com" aria-describedby="site-help" />
+            <button type="submit">Add</button>
+          </div>
+          <p id="site-help" class="help">Exact HTTPS origins only, including the port. Subdomains must be added separately. Sites must run GitHub.</p>
+          <ul id="site-list" aria-label="Monitored GitHub sites"></ul>
+          <p id="empty-sites" class="help" hidden>No sites monitored. Warnings are off.</p>
+          <button id="restore-sites" type="button" class="secondary">Restore github.com</button>
+        </fieldset>
+      </form>
+      <p id="site-status" class="help" role="status" aria-live="polite">Loading settings...</p>
+      <p id="site-error" role="alert" hidden></p>
+      <button id="retry-sites" type="button" class="secondary" hidden>Retry loading</button>
       <form id="label-form">
         <fieldset id="label-controls" disabled>
           <legend>Highlight labels</legend>
@@ -28,7 +45,19 @@
       <p id="settings-error" role="alert" hidden></p>
       <button id="retry-settings" type="button" class="secondary" hidden>Retry loading</button>
       <p class="help">Labels sync through your browser account when browser sync is enabled. Changes apply to open GitHub tabs.</p>
-      <p class="notice">Visual reminder only; merging is not blocked.</p>
+      <p class="help">Sites sync too, but access must be allowed on each browser. Changes apply to open tabs. Removing a site stops warnings; revoke retained access in browser extension settings if needed.</p>
+      <fieldset id="merge-controls" disabled>
+        <legend>Merge protection</legend>
+        <label class="checkbox-label" for="block-merging">
+          <input id="block-merging" type="checkbox" aria-describedby="blocking-help" />
+          Block merging while monitored labels are present
+        </label>
+        <p id="blocking-help" class="help">Off by default: merging is not blocked. When enabled, merge actions are disabled until all matching labels are removed. Canceling auto-merge is still allowed.</p>
+      </fieldset>
+      <p id="merge-status" class="help" role="status" aria-live="polite">Loading settings...</p>
+      <p id="merge-error" role="alert" hidden></p>
+      <button id="retry-merge-settings" type="button" class="secondary" hidden>Retry loading</button>
+      <p class="notice">Local browser protection only. This does not enforce repository rules or cancel previously enabled auto-merge.</p>
       <p id="version" class="version"></p>
     </main>
     <script type="module" src="./main.ts"></script>

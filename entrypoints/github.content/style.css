@@ -9,15 +9,18 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   margin: 12px 8px -10px;
   pointer-events: none;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .gdm-warning-labels > span {
   display: inline-block;
-  max-width: 100%;
+  flex: 0 0 auto;
+  box-sizing: border-box;
   padding: 0 7px;
   border: 1px solid;
   border-radius: 2em;
@@ -25,5 +28,47 @@
   font-size: 12px;
   font-weight: 600;
   line-height: 20px;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.gdm-warning-labels > [hidden] {
+  display: none !important;
+}
+
+.gdm-overflow-label {
+  max-width: 100%;
+  color: #ffffff;
+  background: #cf222e;
+  border-color: #cf222e;
+  cursor: help;
+}
+
+button[data-gdm-blocked] {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+.gdm-merge-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 8px;
+  color: #cf222e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gdm-stop-sign {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+  color: #ffffff;
+  background: #cf222e;
+  font: 700 8px system-ui, sans-serif;
 }

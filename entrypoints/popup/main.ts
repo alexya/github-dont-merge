@@ -1,7 +1,11 @@
 import { browser } from 'wxt/browser';
 
 import { createLabelSettings } from '../../utils/label-settings';
-import { mountLabelSettings } from '../../utils/label-settings-popup';
+import { mountLabelSettings, mountListSettings } from '../../utils/label-settings-popup';
+import { createSiteSettings, DEFAULT_SITES } from '../../utils/site-settings';
+import { createSiteAccess } from '../../utils/site-permissions';
+import { createMergeSettings } from '../../utils/merge-settings';
+import { mountMergeSettings } from '../../utils/merge-settings-popup';
 
 import './style.css';
 
@@ -14,4 +18,11 @@ if (!version) {
 version.textContent = `Version ${browser.runtime.getManifest().version}`;
 
 const dispose = mountLabelSettings(document, createLabelSettings(browser.storage));
-window.addEventListener('pagehide', dispose, { once: true });
+const disposeSites = mountListSettings(document, createSiteSettings(browser.storage), {
+  prefix: 'site',
+  defaults: DEFAULT_SITES,
+  savedMessage: 'Saved. Changes apply to open GitHub tabs.',
+  ...createSiteAccess(browser.permissions),
+});
+const disposeMerge = mountMergeSettings(document, createMergeSettings(browser.storage));
+window.addEventListener('pagehide', () => { dispose(); disposeSites(); disposeMerge(); }, { once: true });
