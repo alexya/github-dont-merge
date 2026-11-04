@@ -1,6 +1,7 @@
 .gdm-merge-warning {
   outline: 2px solid #cf222e !important;
-  outline-offset: 0;
+  /* GitHub clips the mergebox's outer bottom edge. Keep the full frame inside. */
+  outline-offset: -2px !important;
   border-radius: 6px;
 }
 

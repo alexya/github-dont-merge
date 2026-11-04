@@ -17,7 +17,7 @@ test('the Chrome build contains the expected MV3 popup and icons', async () => {
   assert.equal(manifest.version, packageJson.version);
   assert.equal(manifest.description, packageJson.description);
   assert.equal(manifest.action?.default_popup, 'popup.html');
-  assert.deepEqual(manifest.permissions ?? [], []);
+  assert.deepEqual(manifest.permissions, ['storage']);
   assert.deepEqual(manifest.host_permissions ?? [], []);
   assert.equal(manifest.content_scripts?.length, 1);
   const [contentScript] = manifest.content_scripts;

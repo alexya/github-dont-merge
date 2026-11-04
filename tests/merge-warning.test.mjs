@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 
-import { TRIGGER_LABELS } from '../config/trigger-labels.ts';
+import { DEFAULT_TRIGGER_LABELS } from '../config/trigger-labels.ts';
 import { observeMergeWarning } from '../utils/merge-warning.ts';
 
 const stylesheet = await readFile(
@@ -61,7 +61,7 @@ function fixture(t, options = {}) {
 
   return {
     document, window, theme, addLabel, flush,
-    start(triggers = TRIGGER_LABELS) {
+    start(triggers = DEFAULT_TRIGGER_LABELS) {
       controller = observeMergeWarning(document, triggers);
       return controller;
     },
@@ -74,6 +74,7 @@ test('shows every matching sidebar label with its original colors', (t) => {
   const labels = [
     f.addLabel('do not merge', '#a21b53'),
     f.addLabel('do-not-merge', '#d24bda'),
+    f.addLabel('Not Ready To Merge', '#0969da'),
   ];
   f.addLabel('bug', '#d73a4a');
   const button = f.document.querySelector('#merge-button');
@@ -81,7 +82,7 @@ test('shows every matching sidebar label with its original colors', (t) => {
   button.addEventListener('click', () => clicks++);
   f.start();
 
-  assert.deepEqual(f.badges().map((badge) => badge.textContent), TRIGGER_LABELS);
+  assert.deepEqual(f.badges().map((badge) => badge.textContent), DEFAULT_TRIGGER_LABELS);
   for (const [index, badge] of f.badges().entries()) {
     const original = f.window.getComputedStyle(labels[index]);
     assert.equal(badge.style.backgroundColor, original.backgroundColor);
@@ -93,6 +94,7 @@ test('shows every matching sidebar label with its original colors', (t) => {
   const target = f.document.querySelector('#merge-actions');
   assert.ok(target.classList.contains('gdm-merge-warning'));
   assert.equal(f.window.getComputedStyle(target).outline, '2px solid #cf222e');
+  assert.equal(f.window.getComputedStyle(target).outlineOffset, '-2px');
   assert.equal(target.previousElementSibling.className, 'gdm-warning-labels');
   assert.equal(f.document.querySelector('#checks').className, '');
   button.click();
@@ -115,6 +117,38 @@ test('supports the configured list, exact case-insensitive matching and deduplic
   f.addLabel('do not merge');
   f.start(['hold']);
   assert.deepEqual(f.badges().map((badge) => badge.textContent), ['HOLD']);
+});
+
+test('matches a custom Not Ready To Merge label regardless of case', (t) => {
+  const f = fixture(t);
+  const label = f.addLabel('not ready to merge', '#0969da');
+  f.start(['Not Ready To Merge']);
+
+  assert.deepEqual(f.badges().map((badge) => badge.textContent), ['not ready to merge']);
+  assert.equal(f.badges()[0].style.backgroundColor, f.window.getComputedStyle(label).backgroundColor);
+  assert.ok(f.document.querySelector('#merge-actions').classList.contains('gdm-merge-warning'));
+});
+
+test('updates configured labels live, supports an empty list and ignores updates after disposal', async (t) => {
+  const f = fixture(t);
+  f.addLabel('do not merge');
+  f.addLabel('Not Ready To Merge');
+  const controller = f.start();
+  assert.deepEqual(f.badges().map((badge) => badge.textContent), ['do not merge']);
+  controller.setTriggerLabels(['Not Ready To Merge']);
+  await f.flush();
+  assert.deepEqual(f.badges().map((badge) => badge.textContent), ['Not Ready To Merge']);
+  controller.setTriggerLabels([]);
+  await f.flush();
+  assert.equal(f.badges().length, 0);
+  assert.equal(f.document.querySelector('.gdm-merge-warning'), null);
+  controller.setTriggerLabels(DEFAULT_TRIGGER_LABELS);
+  await f.flush();
+  assert.equal(f.badges().length, 1);
+  controller.dispose();
+  controller.setTriggerLabels(DEFAULT_TRIGGER_LABELS);
+  await f.flush();
+  assert.equal(f.badges().length, 0);
 });
 
 test('updates when labels are added, removed, renamed or recolored', async (t) => {

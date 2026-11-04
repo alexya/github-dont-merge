@@ -47,11 +47,11 @@ function findMergeArea(document: Document): HTMLElement | null {
 export function observeMergeWarning(
   document: Document,
   triggerLabels: readonly string[],
-): { refresh: () => void; dispose: () => void } {
+): { refresh: () => void; setTriggerLabels: (labels: readonly string[]) => void; dispose: () => void } {
   const view = document.defaultView;
   if (!view) throw new Error('Merge warnings require a browser document.');
 
-  const triggers = new Set(triggerLabels.map(normalize).filter(Boolean));
+  let triggers = new Set(triggerLabels.map(normalize).filter(Boolean));
   let decoration: {
     target: HTMLElement;
     labels: HTMLDivElement;
@@ -170,6 +170,11 @@ export function observeMergeWarning(
 
   return {
     refresh: resume,
+    setTriggerLabels(labels) {
+      if (disposed) return;
+      triggers = new Set(labels.map(normalize).filter(Boolean));
+      schedule();
+    },
     dispose() {
       disposed = true;
       observer.disconnect();
