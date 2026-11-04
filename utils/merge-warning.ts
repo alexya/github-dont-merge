@@ -116,7 +116,7 @@ export function observeMergeWarning(
   let blockMerging = false;
   const blocked = new Map<HTMLButtonElement, {
     disabled: boolean;
-    marker: HTMLSpanElement;
+    marker: HTMLDivElement;
   }>();
   const releaseButton = (button: HTMLButtonElement) => {
     const state = blocked.get(button);
@@ -145,28 +145,28 @@ export function observeMergeWarning(
     for (const button of buttons) {
       let state = blocked.get(button);
       if (!state) {
-        const marker = document.createElement('span');
+        const marker = document.createElement('div');
         marker.className = 'gdm-merge-stop';
-        marker.tabIndex = 0;
-        marker.setAttribute('role', 'img');
-        marker.setAttribute('aria-label', BLOCKED_MESSAGE);
+        marker.setAttribute('role', 'note');
         const sign = document.createElement('span');
         sign.className = 'gdm-stop-sign';
         sign.textContent = 'STOP';
         sign.setAttribute('aria-hidden', 'true');
-        const tooltip = document.createElement('span');
-        tooltip.className = 'gdm-stop-tooltip';
-        tooltip.setAttribute('role', 'tooltip');
-        tooltip.textContent = BLOCKED_MESSAGE;
-        marker.append(sign, tooltip);
+        const text = document.createElement('span');
+        text.className = 'gdm-stop-text';
+        text.textContent = BLOCKED_MESSAGE;
+        marker.append(sign, text);
         state = { disabled: button.disabled, marker };
         blocked.set(button, state);
       }
       button.disabled = true;
       button.dataset.gdmBlocked = '';
-      // Place the sign after GitHub's split button group so it stays on the same row.
+      // Show the notice on its own line below the row that holds the merge button group.
       const group = button.closest('.BtnGroup, [class*="ButtonGroup-ButtonGroup"]');
-      const anchor = group && target.contains(group) ? group : button;
+      let anchor: Element = group && target.contains(group) ? group : button;
+      if (anchor.parentElement && anchor.parentElement !== target && target.contains(anchor.parentElement)) {
+        anchor = anchor.parentElement;
+      }
       if (anchors.has(anchor)) {
         state.marker.remove();
         continue;

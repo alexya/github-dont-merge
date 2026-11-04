@@ -372,11 +372,12 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   assert.equal(button.disabled, true);
   assert.equal(button.title, 'Original GitHub hint', 'only the stop sign shows a tooltip');
   const marker = f.document.querySelector('.gdm-merge-stop');
-  assert.equal(marker.tabIndex, 0);
-  assert.match(marker.getAttribute('aria-label'), /before merging/);
-  assert.equal(marker.title, '');
-  assert.match(marker.querySelector('[role=tooltip]').textContent, /Remove all monitored do-not-merge labels/);
-  assert.equal(button.nextElementSibling, marker);
+  assert.equal(marker.getAttribute('role'), 'note');
+  assert.equal(marker.querySelector('[role=tooltip]'), null, 'no tooltip, the reminder is visible text');
+  assert.equal(marker.querySelector('.gdm-stop-text').textContent,
+    'Remove all monitored do-not-merge labels from this PR before merging.');
+  assert.ok(button.compareDocumentPosition(marker) & f.window.Node.DOCUMENT_POSITION_FOLLOWING);
+  assert.equal(button.contains(marker), false);
   button.click();
   const click = new f.window.MouseEvent('click', { bubbles: true, cancelable: true });
   button.dispatchEvent(click);
@@ -395,20 +396,19 @@ test('optional blocking disables merge actions, shows an accessible stop sign an
   assert.equal(clicks, 1);
 });
 
-test('places one stop sign after GitHub split button groups instead of inside them', async (t) => {
+test('places one stop notice below the row holding GitHub split button groups', async (t) => {
   const f = fixture(t, {
-    markup: `<div data-testid="mergebox-partial"><section>Checks</section><div id="row">
+    markup: `<div data-testid="mergebox-partial"><section>Checks</section><div id="box"><div id="row">
       <div class="prc-ButtonGroup-ButtonGroup-vFUrY"><div><button id="merge-button">Bypass rules and merge</button></div>
       <div><button aria-label="Select merge method"></button></div></div>
-      <span>You can also merge this with the command line.</span></div></div>`,
+      <span>You can also merge this with the command line.</span></div></div></div>`,
   });
   f.addLabel('do not merge');
   const controller = f.start();
   controller.setBlockMerging(true);
   await f.flush();
-  const group = f.document.querySelector('.prc-ButtonGroup-ButtonGroup-vFUrY');
   assert.equal(f.document.querySelectorAll('.gdm-merge-stop').length, 1);
-  assert.equal(group.nextElementSibling.className, 'gdm-merge-stop');
+  assert.equal(f.document.querySelector('#row').nextElementSibling.className, 'gdm-merge-stop');
   assert.equal(f.document.querySelector('#merge-button').disabled, true);
 });
 

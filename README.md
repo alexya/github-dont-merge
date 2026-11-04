@@ -21,9 +21,9 @@ supported merge-confirmation, auto-merge, and "Bypass rules and merge" controls.
 
 Enable **Block merging while monitored labels are present** in the popup to
 disable merge (including bypass), merge-confirmation, and enable-auto-merge buttons while any
-matching label remains. A stop sign appears beside each blocked action.
-Hover or focus the stop sign for a reminder to remove all
-monitored do-not-merge labels. Removing all matching labels, disabling this
+matching label remains. A stop sign and the red reminder "Remove all monitored
+do-not-merge labels from this PR before merging." appear below the merge
+button. Removing all matching labels, disabling this
 setting, or removing the site restores controls without overriding GitHub's
 own disabled state. Canceling or disabling auto-merge remains available.
 This setting defaults to off, syncs with the other settings, and applies to

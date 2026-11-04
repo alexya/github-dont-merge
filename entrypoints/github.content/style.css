@@ -50,23 +50,19 @@ button[data-gdm-blocked] {
 }
 
 .gdm-merge-stop {
-  position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  flex: 0 0 auto;
-  align-self: center;
-  margin-left: 8px;
-  vertical-align: middle;
-  cursor: help;
-}
-
-/* GitHub's flex rows already space their children. */
-.d-flex > .gdm-merge-stop {
-  margin-left: 0;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  color: #cf222e;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .gdm-stop-sign {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   width: 30px;
@@ -75,27 +71,4 @@ button[data-gdm-blocked] {
   color: #ffffff;
   background: #cf222e;
   font: 700 8px system-ui, sans-serif;
-}
-
-.gdm-stop-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  z-index: 100;
-  width: max-content;
-  max-width: min(240px, 60vw);
-  padding: 8px;
-  border-radius: 6px;
-  color: #ffffff;
-  background: #24292f;
-  font: 12px/1.5 system-ui, sans-serif;
-  white-space: normal;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateX(-50%);
-}
-
-.gdm-merge-stop:hover .gdm-stop-tooltip,
-.gdm-merge-stop:focus .gdm-stop-tooltip {
-  visibility: visible;
 }
