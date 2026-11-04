@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 
 import { mountListSettings } from '../utils/label-settings-popup.ts';
 import { createSiteAccess } from '../utils/site-permissions.ts';
-import { registerSites } from '../utils/site-registration.ts';
+import { injectOpenTabs, registerSites } from '../utils/site-registration.ts';
 import {
   createSiteSettings, DEFAULT_SITES, normalizeSite, sitePattern, validateSites,
 } from '../utils/site-settings.ts';
@@ -159,8 +159,10 @@ test('registration only injects on configured and granted hosts and unregisters 
       async unregisterContentScripts() { calls.push('unregister'); registered = []; },
     },
   };
-  await registerSites(['https://github.com', 'https://missing.example.com'], api);
+  assert.deepEqual(await registerSites(['https://github.com', 'https://missing.example.com'], api), ['https://github.com/*']);
   assert.deepEqual(registered[0].matches, ['https://github.com/*']);
+  assert.deepEqual(await registerSites(['https://github.com', 'https://git.example.com'], api), ['https://git.example.com/*'],
+    'only newly registered hosts are reported for injection');
   assert.deepEqual(registered[0].js, ['content-scripts/github.js']);
   assert.deepEqual(registered[0].css, ['content-scripts/github.css']);
   await registerSites(['https://git.example.com:8443', 'https://git.example.com'], api);
@@ -169,8 +171,31 @@ test('registration only injects on configured and granted hosts and unregisters 
   await registerSites(['https://git.example.com'], api);
   assert.deepEqual(registered, []);
   await registerSites([], api);
-  assert.deepEqual(calls, ['register', 'update', 'unregister']);
+  assert.deepEqual(calls, ['register', 'update', 'update', 'unregister']);
   await assert.rejects(registerSites(DEFAULT_SITES, {
     ...api, permissions: { async contains() { throw new Error('Permission lookup failed'); } },
   }), /Permission lookup failed/);
+});
+
+test('injects the content script and styles into already open tabs on new hosts', async () => {
+  const calls = [];
+  const api = {
+    tabs: { async query({ url }) { calls.push(['query', url]); return [{ id: 1 }, { id: 2 }, {}]; } },
+    scripting: {
+      async insertCSS({ target, files }) { calls.push(['css', target.tabId, files]); },
+      async executeScript({ target, files }) {
+        if (target.tabId === 2) throw new Error('Tab closed');
+        calls.push(['js', target.tabId, files]);
+      },
+    },
+  };
+  await injectOpenTabs([], api);
+  assert.deepEqual(calls, [], 'no tab lookup without new hosts');
+  await injectOpenTabs(['https://git.example.com/*'], api);
+  assert.deepEqual(calls, [
+    ['query', ['https://git.example.com/*']],
+    ['css', 1, ['/content-scripts/github.css']],
+    ['css', 2, ['/content-scripts/github.css']],
+    ['js', 1, ['/content-scripts/github.js']],
+  ]);
 });

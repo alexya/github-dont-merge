@@ -21,7 +21,7 @@ const dispose = mountLabelSettings(document, createLabelSettings(browser.storage
 const disposeSites = mountListSettings(document, createSiteSettings(browser.storage), {
   prefix: 'site',
   defaults: DEFAULT_SITES,
-  savedMessage: 'Saved. Reload newly added or authorized sites to activate warnings.',
+  savedMessage: 'Saved. Changes apply to open GitHub tabs.',
   ...createSiteAccess(browser.permissions),
 });
 const disposeMerge = mountMergeSettings(document, createMergeSettings(browser.storage));

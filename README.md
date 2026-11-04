@@ -66,9 +66,10 @@ HTTP sites, wildcards, credentials, paths, queries, and fragments are rejected.
 Adding a site saves it and asks for browser access to that host. Click
 **Allow** in the browser prompt. If access is denied, the site stays in the list
 but inactive until you click **Allow access**. Sites sync between browsers, but permissions do not:
-use **Allow access** next to a synced site on each browser. Reload existing
-tabs after adding or authorizing a site. Label changes and site removal apply
-to already active tabs without reloading. An empty site list turns warnings off.
+use **Allow access** next to a synced site on each browser. Every setting
+change, including adding or authorizing a site, applies to already open tabs
+without reloading them. Installing or reloading the extension also refreshes
+open tabs on configured sites. An empty site list turns warnings off.
 Removing a site stops warnings and future script registration; previously
 granted permissions can be revoked in the browser's extension settings.
 
