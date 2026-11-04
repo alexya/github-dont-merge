@@ -29,9 +29,9 @@ own disabled state. Canceling or disabling auto-merge remains available.
 This setting defaults to off, syncs with the other settings, and applies to
 already active tabs.
 
-This is local browser protection, not server-side enforcement: it does not
-cancel previously enabled auto-merge, block API requests, affect other browsers,
-or replace repository rulesets. Use GitHub rulesets for enforced merge policies.
+**Only affects this browser.** Merging is blocked only in this browser, with
+this extension on. Other people, other browsers, the GitHub CLI or API, and
+auto-merge that was turned on earlier can still merge.
 
 Open the extension from the browser toolbar to manage **Highlight labels**.
 The default labels are `do not merge` and `do-not-merge`. Add custom labels
