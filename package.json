@@ -2,7 +2,7 @@
   "name": "github-dont-merge",
   "version": "0.1.0",
   "private": true,
-  "description": "A browser extension project for adding a do-not-merge action to GitHub pull requests.",
+  "description": "Highlight GitHub pull request merge controls when a do-not-merge label is applied.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -19,11 +19,12 @@
     "build:firefox": "wxt build -b firefox --mv3",
     "zip": "wxt zip",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test",
+    "test": "npm run build && node --experimental-strip-types --test",
     "check": "npm run typecheck && npm test",
     "postinstall": "wxt prepare"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0",
     "typescript": "^5.9.3",
     "vite": "^8.3.5",
     "web-ext": "^10.8.0",
