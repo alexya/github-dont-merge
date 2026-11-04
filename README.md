@@ -45,7 +45,9 @@ extension/settings sync is enabled. Chrome, Edge, and Firefox use separate
 sync services; settings do not sync across browser vendors. Unpacked builds
 with different extension IDs also have separate settings.
 
-The popup reports loading and saving errors; failed saves do not discard your
+A status badge in the popup's top-right corner shows **Loading...**,
+**Saving...**, **Saved** (for 3 seconds), or **Error** only while relevant.
+Error details appear next to the affected setting; failed saves do not discard your
 input. If sync storage is unavailable after updating an unpacked build, reload
 the extension in your browser's extensions page to apply its permissions.
 Browser sync storage quotas apply to large lists.

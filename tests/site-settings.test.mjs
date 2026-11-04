@@ -80,7 +80,7 @@ test('popup requests exact site permissions in the user gesture, handles denial,
     },
   });
   const dispose = mountListSettings(document, f.settings, {
-    prefix: 'site', defaults: DEFAULT_SITES, savedMessage: 'Reload newly added sites.', ...access,
+    prefix: 'site', defaults: DEFAULT_SITES, ...access,
   });
   t.after(() => { dispose(); dom.window.close(); });
   const add = (value) => {
@@ -135,7 +135,7 @@ test('adding a site persists it even when the permission prompt closes the popup
     request: () => new Promise(() => {}),
   });
   const dispose = mountListSettings(document, f.settings, {
-    prefix: 'site', defaults: DEFAULT_SITES, savedMessage: 'Saved.', ...access,
+    prefix: 'site', defaults: DEFAULT_SITES, ...access,
   });
   t.after(() => dom.window.close());
   await flush();
