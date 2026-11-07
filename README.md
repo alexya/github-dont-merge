@@ -3,6 +3,16 @@
 A browser extension that highlights GitHub pull request merge controls when
 selected labels warn against merging.
 
+## Screenshots
+
+### Pull request warning
+
+![A pull request with matching label badges, a red merge warning, and a STOP notice above the merge button](./pics/github-dont-merge-demo.png)
+
+### Extension settings
+
+![The extension popup showing the GitHub sites and highlight labels settings](./pics/github-dont-merge-ui.png)
+
 ## Label warnings
 
 When an applied sidebar label matches a configured trigger, the merge action
